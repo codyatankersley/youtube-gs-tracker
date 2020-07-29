@@ -12,7 +12,7 @@ function getVideoListChannel(channelId, maxNumberVideos, apiKey) {
   var vidStatsArray = [];
 
   // Load first 50 results (YouTube max results per page) from channel into array
-  vidStatsArray = getVids(videos, vidStatsArray, apiKey);
+  vidStatsArray = vidStatsArray.concat(getVids(videos, apiKey));
 
   // Check if Next Page exists, fetch results using nextPageToken, translate data, load array and repeat
   if (typeof (channelData.nextPageToken) != 'undefined'){
@@ -24,7 +24,7 @@ function getVideoListChannel(channelId, maxNumberVideos, apiKey) {
       var channelData = npData[0];
       var npVideos = npData[1];
 
-      vidStatsArray = vidStatsArray.concat(getVids(npVideos, vidStatsArray, apiKey));
+      vidStatsArray = vidStatsArray.concat(getVids(npVideos, apiKey));
     }
     while (typeof (channelData.nextPageToken) != 'undefined');
   }
@@ -40,22 +40,22 @@ function getResRaw(fetchRes){
 }
 
 // Isolates valuable data, updates list arg
-function getVids(vidData, currentList, key){
-  var tempArray = currentList
+function getVids(vidData, key){
+  var tempArray = [];
 
   for (var i = 0; i < vidData.length - 1; i++) {
-    var videoid = vidData[i].id.videoId;
-    var videotitle = vidData[i].snippet.title;
-    var videodescription = vidData[i].snippet.description;
-    var videodate = vidData[i].snippet.publishedAt; // date time published
-    var statres = UrlFetchApp.fetch('https://www.googleapis.com/youtube/v3/videos?id=' + videoid + '&key=' + key + '&part=snippet,contentDetails,statistics,status');
-    var statjson = statres.getContentText();
-    var stats = JSON.parse(statjson);
+    var videoId = vidData[i].id.videoId;
+    var videoTitle = vidData[i].snippet.title;
+    var videoDescription = vidData[i].snippet.description;
+    var videoDate = vidData[i].snippet.publishedAt; // date time published
+    var statRes = UrlFetchApp.fetch('https://www.googleapis.com/youtube/v3/videos?id=' + videoId + '&key=' + key + '&part=snippet,contentDetails,statistics,status');
+    var statJSON = statRes.getContentText();
+    var stats = JSON.parse(statJSON);
     if (typeof (stats['items'][0]) != 'undefined'){
-      tempArray.push([videoid, videotitle, videodate,stats.items[0].statistics.viewCount]);
+      tempArray.push([videoId, videoTitle, videoDate,stats.items[0].statistics.viewCount]);
     }
     else {
-      tempArray.push([videoid, videotitle, videodate,]);
+      tempArray.push([videoId, videoTitle, videoDate,]);
     }
     return tempArray;
   }}
